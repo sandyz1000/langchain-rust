@@ -238,7 +238,7 @@ mod tests {
                     )])?,
                 );
                 Ok(update)
-            })),
+            })) as Arc<dyn Node<MessagesState>>,
         );
 
         let mut adjacency = HashMap::new();
@@ -262,7 +262,7 @@ mod tests {
 
         let config = CheckpointConfig::new("thread-1");
         let state = MessagesState::new();
-        let result = executor.execute(state, &config).await;
+        let result = executor.execute(state, &config, None, None, None).await;
         assert!(result.is_ok());
     }
 }

@@ -1,5 +1,5 @@
 use std::collections::HashMap;
-
+use std::sync::Arc;
 use crate::langgraph::{
     error::LangGraphError,
     node::Node,
@@ -16,7 +16,7 @@ use crate::langgraph::{
 /// and execution stops. Interrupts in parallel nodes are not currently
 /// supported (only the first interrupt will be caught).
 pub async fn execute_nodes_parallel<S: State>(
-    nodes: &HashMap<String, std::sync::Arc<dyn Node<S>>>,
+    nodes: &HashMap<String, Arc<dyn Node<S>>>,
     node_names: &[String],
     state: &S,
     config: Option<&RunnableConfig>,
@@ -127,15 +127,16 @@ fn merge_messages_state_update<S: State>(
 
 #[cfg(test)]
 mod tests {
+    
     use super::*;
     use crate::langgraph::{function_node, state::MessagesState};
 
     #[tokio::test]
     async fn test_execute_nodes_parallel() {
-        let mut nodes = HashMap::new();
+        let mut nodes: HashMap<String, Arc<dyn Node<MessagesState>>> = HashMap::new();
         nodes.insert(
             "node1".to_string(),
-            std::sync::Arc::new(function_node("node1", |_state| async move {
+            Arc::new(function_node("node1", |_state| async move {
                 let mut update = HashMap::new();
                 update.insert(
                     "messages".to_string(),
@@ -144,11 +145,11 @@ mod tests {
                     )])?,
                 );
                 Ok(update)
-            })),
+            })) as Arc<dyn Node<MessagesState>>,
         );
         nodes.insert(
             "node2".to_string(),
-            std::sync::Arc::new(function_node("node2", |_state| async move {
+            Arc::new(function_node("node2", |_state| async move {
                 let mut update = HashMap::new();
                 update.insert(
                     "messages".to_string(),
@@ -157,14 +158,19 @@ mod tests {
                     )])?,
                 );
                 Ok(update)
-            })),
+            })) as Arc<dyn Node<MessagesState>>,
         );
 
         let state = MessagesState::new();
-        let results =
-            execute_nodes_parallel(&nodes, &["node1".to_string(), "node2".to_string()], &state)
-                .await
-                .unwrap();
+        let results = execute_nodes_parallel(
+            &nodes,
+            &["node1".to_string(), "node2".to_string()],
+            &state,
+            None,
+            None,
+        )
+        .await
+        .unwrap();
 
         assert_eq!(results.len(), 2);
     }

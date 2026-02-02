@@ -78,14 +78,17 @@ mod tests {
 
         // First call - should interrupt
         let result = compiled
-            .invoke_with_config_interrupt(initial_state, &config)
+            .invoke_with_config_interrupt(crate::langgraph::interrupts::StateOrCommand::State(initial_state), &config)
             .await
             .unwrap();
         assert!(result.has_interrupt());
 
         // Resume with approval
         let resumed = compiled
-            .invoke_with_config_interrupt(Command::resume(true), &config)
+            .invoke_with_config_interrupt(
+                crate::langgraph::interrupts::StateOrCommand::Command(Command::resume(true)),
+                &config,
+            )
             .await
             .unwrap();
 

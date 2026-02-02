@@ -125,19 +125,31 @@ where
 #[cfg(test)]
 mod tests {
     use super::*;
+    use std::future::Future;
+    use std::pin::Pin;
 
     #[tokio::test]
     async fn test_join_all() {
-        let futures = vec![async { 1 }, async { 2 }, async { 3 }];
+        type PinBoxi32 = Pin<Box<dyn Future<Output = i32> + Send>>;
+        
+        let futures: Vec<PinBoxi32> = vec![
+            Box::pin(async { 1 }),
+            Box::pin(async { 2 }),
+            Box::pin(async { 3 }),
+        ];
         let results = join_all(futures).await;
         assert_eq!(results, vec![1, 2, 3]);
     }
 
     #[tokio::test]
     async fn test_try_join_all() {
-        let futures = vec![async { Ok::<i32, &str>(1) }, async { Ok(2) }, async {
-            Ok(3)
-        }];
+        type PinBoxResultI32 = Pin<Box<dyn Future<Output = Result<i32, String>> + Send>>;
+        
+        let futures: Vec<PinBoxResultI32> = vec![
+            Box::pin(async { Ok::<i32, String>(1) }),
+            Box::pin(async { Ok(2) }),
+            Box::pin(async { Ok(3) }),
+        ];
         let results = try_join_all(futures).await.unwrap();
         assert_eq!(results, vec![1, 2, 3]);
     }

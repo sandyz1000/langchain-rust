@@ -9,7 +9,7 @@ mod time_travel_tests {
     use std::collections::HashMap;
 
     #[tokio::test]
-    async fn test_time_travel_resume_from_checkpoint() {
+    async fn test_time_travel_resume_from_checkpoint() -> Result<(), Box<dyn std::error::Error>> {
         let node1 = function_node("node1", |_state: &MessagesState| async move {
             let mut update = HashMap::new();
             update.insert(
@@ -52,10 +52,11 @@ mod time_travel_tests {
             .unwrap();
 
         assert!(!resumed.messages.is_empty());
+        Ok(())
     }
 
     #[tokio::test]
-    async fn test_update_state_creates_fork() {
+    async fn test_update_state_creates_fork() -> Result<(), Box<dyn std::error::Error>> {
         let node1 = function_node("node1", |_state: &MessagesState| async move {
             let mut update = HashMap::new();
             update.insert(
@@ -108,12 +109,13 @@ mod time_travel_tests {
         assert!(updated.parent_config.is_some());
         assert_eq!(
             updated.parent_config.as_ref().unwrap().checkpoint_id,
-            checkpoint.checkpoint_id()
+            checkpoint.checkpoint_id().cloned()
         );
+        Ok(())
     }
 
     #[tokio::test]
-    async fn test_snapshot_to_config() {
+    async fn test_snapshot_to_config() -> Result<(), Box<dyn std::error::Error>> {
         use crate::langgraph::persistence::config::CheckpointConfig;
         use crate::langgraph::persistence::snapshot::StateSnapshot;
 
@@ -126,5 +128,6 @@ mod time_travel_tests {
             runnable_config.get_thread_id(),
             Some("thread-1".to_string())
         );
+        Ok(())
     }
 }

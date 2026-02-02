@@ -4,19 +4,21 @@ mod memory_tests {
         function_node_with_config, function_node_with_store,
         persistence::{InMemorySaver, InMemoryStore, RunnableConfig, Store},
         state::MessagesState,
-        StateGraph, END, START,
+        LangGraphError, Node, StateGraph, END, START,
     };
-    use std::collections::HashMap;
-
+    use std::{collections::HashMap, sync::Arc};
+    
     #[tokio::test]
     async fn test_node_with_config() {
         let node = function_node_with_config(
             "test_node",
-            |_state: &MessagesState, config: &RunnableConfig| async move {
+            |_state: &MessagesState, config: &RunnableConfig| {
                 let thread_id = config.get_thread_id().unwrap();
-                let mut update = HashMap::new();
-                update.insert("thread_id".to_string(), serde_json::to_value(thread_id)?);
-                Ok(update)
+                async move {
+                    let mut update = HashMap::new();
+                    update.insert("thread_id".to_string(), serde_json::json!(thread_id));
+                    Ok::<HashMap<String, serde_json::Value>, LangGraphError>(update)
+                }
             },
         );
 
@@ -31,13 +33,11 @@ mod memory_tests {
 
     #[tokio::test]
     async fn test_node_with_store() {
-        let store = std::sync::Arc::new(InMemoryStore::new());
+        let store = Arc::new(InMemoryStore::new());
 
         let node = function_node_with_store(
             "test_node",
-            |_state: &MessagesState, _config: &RunnableConfig, store: std::sync::Arc<dyn Store>| async move {
-                use crate::langgraph::error::LangGraphError;
-
+            |_state: &MessagesState, _config: &RunnableConfig, store: Arc<dyn Store>| async move {
                 // Store a value
                 store
                     .put(
@@ -55,13 +55,19 @@ mod memory_tests {
                     .map_err(|e| LangGraphError::ExecutionError(format!("Store error: {}", e)))?;
                 assert!(item.is_some());
                 assert_eq!(
-                    item.unwrap().value.get("value").unwrap().as_str().unwrap(),
+                    item.as_ref()
+                        .unwrap()
+                        .value
+                        .get("value")
+                        .unwrap()
+                        .as_str()
+                        .unwrap(),
                     "test_data"
                 );
 
                 let mut update = HashMap::new();
                 update.insert("result".to_string(), serde_json::json!("success"));
-                Ok(update)
+                Ok::<HashMap<String, serde_json::Value>, LangGraphError>(update)
             },
         );
 
@@ -76,17 +82,17 @@ mod memory_tests {
 
     #[tokio::test]
     async fn test_memory_across_threads() {
-        let checkpointer = std::sync::Arc::new(InMemorySaver::new());
-        let store = std::sync::Arc::new(InMemoryStore::new());
+        let checkpointer = Arc::new(InMemorySaver::new());
+        let store = Arc::new(InMemoryStore::new());
 
         let node = function_node_with_store(
             "memory_node",
-            |state: &MessagesState, config: &RunnableConfig, store: std::sync::Arc<dyn Store>| {
-                let user_id = config.get_user_id().unwrap_or("default".to_string());
+            |state: &MessagesState, config: &RunnableConfig, store: Arc<dyn Store>| {
+                let user_id = config
+                    .get_user_id()
+                    .unwrap_or_else(|| "default".to_string());
                 let messages_is_empty = state.messages.is_empty();
                 async move {
-                    use crate::langgraph::error::LangGraphError;
-
                     let namespace = ["memories", user_id.as_str()];
 
                     // Store a memory (only on first call to avoid duplicates in test)
@@ -116,7 +122,7 @@ mod memory_tests {
                         "memories_found".to_string(),
                         serde_json::json!(memories.len()),
                     );
-                    Ok(update)
+                    Ok::<HashMap<String, serde_json::Value>, LangGraphError>(update)
                 }
             },
         );
@@ -165,7 +171,7 @@ mod memory_tests {
     #[tokio::test]
     async fn test_store_semantic_search_support() {
         let store = InMemoryStore::new();
-        assert_eq!(store.supports_semantic_search(), false);
+        assert!(!store.supports_semantic_search());
         assert_eq!(store.embedding_dims(), None);
     }
 }

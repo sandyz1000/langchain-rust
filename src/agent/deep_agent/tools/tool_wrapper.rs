@@ -108,7 +108,7 @@ mod tests {
 
     #[tokio::test]
     async fn test_wrapper_no_override_uses_inner() {
-        let inner = Arc::new(DummyTool);
+        let inner = Arc::new(DummyTool) as Arc<dyn Tool>;
         let wrapped = ToolWithCustomDescription::new(Arc::clone(&inner), None, None);
         assert_eq!(wrapped.name(), "dummy");
         assert_eq!(wrapped.description(), "Default description");
