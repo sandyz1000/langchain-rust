@@ -2,10 +2,10 @@ use thiserror::Error;
 
 use crate::error::VectorStoreError;
 
-/// Retriever 相关的所有错误类型
+/// Retriever-related error types
 #[derive(Error, Debug)]
 pub enum RetrieverError {
-    // ============ 基础检索错误 ============
+    // ============ Base Retrieval Errors ============
     #[error("Query failed: {0}")]
     QueryError(String),
 
@@ -15,14 +15,14 @@ pub enum RetrieverError {
     #[error("Vector store error: {0}")]
     VectorStoreError(#[from] VectorStoreError),
 
-    // ============ 配置错误 ============
+    // ============ Configuration Errors ============
     #[error("Retriever configuration error: {0}")]
     ConfigurationError(String),
 
     #[error("Missing required configuration: {0}")]
     MissingConfiguration(String),
 
-    // ============ 外部 API 错误 ============
+    // ============ External API Errors ============
     #[error("Wikipedia API error: {0}")]
     WikipediaError(String),
 
@@ -35,7 +35,7 @@ pub enum RetrieverError {
     #[error("Remote API error: {0}")]
     RemoteAPIError(String),
 
-    // ============ 算法错误 ============
+    // ============ Algorithm Errors ============
     #[error("BM25 indexing error: {0}")]
     BM25Error(String),
 
@@ -48,28 +48,28 @@ pub enum RetrieverError {
     #[error("Reranker error: {0}")]
     RerankerError(String),
 
-    // ============ 集合和索引错误 ============
+    // ============ Collection and Index Errors ============
     #[error("Index not found: {0}")]
     IndexNotFoundError(String),
 
     #[error("Collection not found: {0}")]
     CollectionNotFound(String),
 
-    // ============ 速率限制和超时错误 ============
+    // ============ Rate Limiting and Timeout Errors ============
     #[error("Rate limit exceeded")]
     RateLimitError,
 
     #[error("Timeout: {0}")]
     TimeoutError(String),
 
-    // ============ 参数验证错误 ============
+    // ============ Parameter Validation Errors ============
     #[error("Invalid query: {0}")]
     InvalidQuery(String),
 
     #[error("Invalid parameter: {0}")]
     InvalidParameter(String),
 
-    // ============ 内部错误 ============
+    // ============ Internal Errors ============
     #[error("Internal error: {0}")]
     InternalError(String),
 

@@ -1,7 +1,6 @@
-//! 统一的错误处理模块
-//!
-//! 提供 langchain-ai-rust 项目所有模块的错误类型定义。
-//! 使用 thiserror 库，提供类型安全且易于理解的错误类型。
+//! Unified error handling module
+//! Provides error type definitions for all modules in the langchain-ai-rust project.
+//! Uses the `thiserror` library to provide type-safe and easy-to-understand error types.
 
 pub use crate::chain::ChainError;
 pub use crate::language_models::LLMError;
@@ -18,18 +17,18 @@ pub use crate::rag::RAGError;
 pub mod utils;
 pub use utils::{error_context, error_info, ErrorCode, ErrorContext};
 
-/// 统一的错误枚举，组合所有子模块错误
+/// Unified error enum that combines error types from all submodules.
 ///
-/// 这个枚举作为整个项目的顶层错误类型，
-/// 允许所有子模块的错误向上传播。
+/// This enum serves as the top-level error type for the entire project,
+/// allowing errors from all submodules to propagate upward.
 ///
-/// # 使用示例
+/// # Usage Example
 ///
 /// ```rust,ignore
 /// use langchain_ai_rust::error::LangChainError;
 ///
 /// async fn example() -> Result<(), LangChainError> {
-///     // 所有子模块错误都可以自动转换
+///     // Errors from all submodules can be automatically converted
 ///     some_agent_operation().await?;
 ///     some_rag_operation().await?;
 ///     Ok(())
@@ -74,7 +73,7 @@ pub enum LangChainError {
     Unknown(String),
 }
 
-// 便利的类型别名
+// Convenience type alias
 pub type Result<T> = std::result::Result<T, LangChainError>;
 
 #[cfg(test)]

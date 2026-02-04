@@ -1,23 +1,17 @@
-//! Builder 模式抽象和工具
-//!
-//! 提供通用的 Builder trait 和宏，减少重复代码。
-
-/// Builder trait 定义
-///
-/// 为所有 Builder 类型提供统一的接口。
+/// Builder trait definition
+/// Provides a unified interface for all Builder types.
 pub trait Builder<T> {
-    /// 构建最终对象
+    /// Build the final object
     fn build(self) -> Result<T, Box<dyn std::error::Error>>;
 }
 
 /// Builder trait with validation
-///
-/// 支持验证的 Builder trait。
+/// Supports validation in the Builder trait.
 pub trait ValidatedBuilder<T> {
-    /// 验证构建参数
+    /// Validate build parameters
     fn validate(&self) -> Result<(), String>;
 
-    /// 构建最终对象（带验证）
+    /// Build the final object (with validation)
     fn build(self) -> Result<T, Box<dyn std::error::Error>>
     where
         Self: Sized,
@@ -26,34 +20,31 @@ pub trait ValidatedBuilder<T> {
         self.build_unchecked()
     }
 
-    /// 构建最终对象（不验证）
+    /// Build the final object (without validation)
     fn build_unchecked(self) -> Result<T, Box<dyn std::error::Error>>;
 }
 
-/// 宏：创建简单的 Builder 结构
-///
-/// # 示例
-///
-/// ```rust,ignore
-/// use langchain_ai_rust::utils::simple_builder;
-///
-/// simple_builder! {
-///     pub struct MyBuilder {
-///         field1: Option<String>,
-///         field2: Option<i32>,
-///     }
-///     impl {
-///         pub fn with_field1(mut self, value: String) -> Self {
-///             self.field1 = Some(value);
-///             self
-///         }
-///         pub fn with_field2(mut self, value: i32) -> Self {
-///             self.field2 = Some(value);
-///             self
-///         }
-///     }
-/// }
-/// ```
+/// Macro: Create simple Builder structures
+// / /// # example
+// / /// ```rust,ignore
+// / use langchain_ai_rust::utils::simple_builder;
+// / /// simple_builder! {
+// / pub struct MyBuilder {
+// / field1: Option<String>,
+// / field2: Option<i32>,
+// / }
+// / impl {
+// / pub fn with_field1(mut self, value: String) -> Self {
+// / self.field1 = Some(value);
+// / self
+// / }
+// / pub fn with_field2(mut self, value: i32) -> Self {
+// / self.field2 = Some(value);
+// / self
+// / }
+// / }
+// / }
+// / ```
 #[macro_export]
 macro_rules! simple_builder {
     (

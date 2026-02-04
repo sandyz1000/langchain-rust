@@ -1,4 +1,6 @@
 use std::collections::HashMap;
+use std::future::Future;
+use std::pin::Pin;
 use std::sync::Arc;
 
 use async_trait::async_trait;
@@ -82,50 +84,15 @@ pub trait Node<S: State>: Send + Sync {
 /// - `Fn(&S) -> Fut` - state only
 /// - `Fn(&S, &RunnableConfig) -> Fut` - state and config
 /// - `Fn(&S, &RunnableConfig, &dyn Store) -> Fut` - state, config, and store
+
+type FunctionOutput = Pin<Box<dyn Future<Output = Result<StateUpdate, LangGraphError>> + Send>>;
+
 pub struct FunctionNode<S: State> {
     name: String,
-    func_state_only: Option<
-        Arc<
-            dyn Fn(
-                    &S,
-                ) -> std::pin::Pin<
-                    Box<
-                        dyn std::future::Future<Output = Result<StateUpdate, LangGraphError>>
-                            + Send,
-                    >,
-                > + Send
-                + Sync,
-        >,
-    >,
-    func_with_config: Option<
-        Arc<
-            dyn Fn(
-                    &S,
-                    &RunnableConfig,
-                ) -> std::pin::Pin<
-                    Box<
-                        dyn std::future::Future<Output = Result<StateUpdate, LangGraphError>>
-                            + Send,
-                    >,
-                > + Send
-                + Sync,
-        >,
-    >,
-    func_with_config_store: Option<
-        Arc<
-            dyn Fn(
-                    &S,
-                    &RunnableConfig,
-                    StoreBox,
-                ) -> std::pin::Pin<
-                    Box<
-                        dyn std::future::Future<Output = Result<StateUpdate, LangGraphError>>
-                            + Send,
-                    >,
-                > + Send
-                + Sync,
-        >,
-    >,
+    func_state_only: Option<Arc<dyn Fn(&S) -> FunctionOutput + Send + Sync>>,
+    func_with_config: Option<Arc<dyn Fn(&S, &RunnableConfig) -> FunctionOutput + Send + Sync>>,
+    func_with_config_store:
+        Option<Arc<dyn Fn(&S, &RunnableConfig, StoreBox) -> FunctionOutput + Send + Sync>>,
 }
 
 impl<S: State> FunctionNode<S> {
@@ -133,7 +100,7 @@ impl<S: State> FunctionNode<S> {
     pub fn new<F, Fut>(name: String, func: F) -> Self
     where
         F: Fn(&S) -> Fut + Send + Sync + 'static,
-        Fut: std::future::Future<Output = Result<StateUpdate, LangGraphError>> + Send + 'static,
+        Fut: Future<Output = Result<StateUpdate, LangGraphError>> + Send + 'static,
     {
         Self {
             name,
@@ -147,7 +114,7 @@ impl<S: State> FunctionNode<S> {
     pub fn with_config<F, Fut>(name: String, func: F) -> Self
     where
         F: Fn(&S, &RunnableConfig) -> Fut + Send + Sync + 'static,
-        Fut: std::future::Future<Output = Result<StateUpdate, LangGraphError>> + Send + 'static,
+        Fut: Future<Output = Result<StateUpdate, LangGraphError>> + Send + 'static,
     {
         Self {
             name,
@@ -161,7 +128,7 @@ impl<S: State> FunctionNode<S> {
     pub fn with_config_store<F, Fut>(name: String, func: F) -> Self
     where
         F: Fn(&S, &RunnableConfig, StoreBox) -> Fut + Send + Sync + 'static,
-        Fut: std::future::Future<Output = Result<StateUpdate, LangGraphError>> + Send + 'static,
+        Fut: Future<Output = Result<StateUpdate, LangGraphError>> + Send + 'static,
     {
         Self {
             name,
@@ -422,7 +389,7 @@ impl<S: State> Node<S> for AgentNode {
 pub fn function_node<S: State, F, Fut>(name: impl Into<String>, func: F) -> FunctionNode<S>
 where
     F: Fn(&S) -> Fut + Send + Sync + 'static,
-    Fut: std::future::Future<Output = Result<StateUpdate, LangGraphError>> + Send + 'static,
+    Fut: Future<Output = Result<StateUpdate, LangGraphError>> + Send + 'static,
 {
     FunctionNode::new(name.into(), func)
 }
@@ -437,7 +404,7 @@ pub fn function_node_with_config<S: State, F, Fut>(
 ) -> FunctionNode<S>
 where
     F: Fn(&S, &RunnableConfig) -> Fut + Send + Sync + 'static,
-    Fut: std::future::Future<Output = Result<StateUpdate, LangGraphError>> + Send + 'static,
+    Fut: Future<Output = Result<StateUpdate, LangGraphError>> + Send + 'static,
 {
     FunctionNode::with_config(name.into(), func)
 }
@@ -452,7 +419,7 @@ pub fn function_node_with_store<S: State, F, Fut>(
 ) -> FunctionNode<S>
 where
     F: Fn(&S, &RunnableConfig, StoreBox) -> Fut + Send + Sync + 'static,
-    Fut: std::future::Future<Output = Result<StateUpdate, LangGraphError>> + Send + 'static,
+    Fut: Future<Output = Result<StateUpdate, LangGraphError>> + Send + 'static,
 {
     FunctionNode::with_config_store(name.into(), func)
 }

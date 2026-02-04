@@ -2,7 +2,7 @@ use thiserror::Error;
 
 #[derive(Error, Debug)]
 pub enum VectorStoreError {
-    // ============ 基础操作错误 ============
+    // ============ Base Operation Errors ============
     #[error("This vector store does not support delete")]
     DeleteNotSupported,
 
@@ -18,21 +18,21 @@ pub enum VectorStoreError {
     #[error("Index error: {0}")]
     IndexError(String),
 
-    // ============ 认证和权限错误 ============
+    // ============ Authentication and Permission Errors ============
     #[error("Authentication failed: {0}")]
     AuthenticationError(String),
 
     #[error("Permission denied: {0}")]
     PermissionError(String),
 
-    // ============ 速率限制和超时错误 ============
+    // ============ Rate Limiting and Timeout Errors ============
     #[error("Rate limit exceeded")]
     RateLimitError,
 
     #[error("Timeout: {0}")]
     TimeoutError(String),
 
-    // ============ 数据转换错误 ============
+    // ============ Data Conversion Errors ============
     #[error("Serialization error: {0}")]
     SerializationError(#[from] serde_json::Error),
 
@@ -42,7 +42,7 @@ pub enum VectorStoreError {
     #[error("Embedding dimension mismatch: expected {expected}, got {actual}")]
     DimensionMismatch { expected: usize, actual: usize },
 
-    // ============ 集合/索引管理错误 ============
+    // ============ Collection/Index Management Errors ============
     #[error("Collection not found: {0}")]
     CollectionNotFound(String),
 
@@ -52,14 +52,14 @@ pub enum VectorStoreError {
     #[error("Index not found: {0}")]
     IndexNotFound(String),
 
-    // ============ 参数验证错误 ============
+    // ============ Parameter Validation Errors ============
     #[error("Invalid parameter: {0}")]
     InvalidParameter(String),
 
     #[error("Missing required parameter: {0}")]
     MissingParameter(String),
 
-    // ============ 内部错误 ============
+    // ============ Internal Errors ============
     #[error("Internal error: {0}")]
     InternalError(String),
 

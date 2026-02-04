@@ -14,6 +14,9 @@ use serde_json::json;
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
+    // Load environment variables from .env file
+    dotenvy::dotenv().ok();
+
     env_logger::init();
 
     // Create enhanced store with vector index

@@ -24,6 +24,7 @@ cargo clippy --all-features -- -D warnings
 ```
 
 ### Features
+
 The project uses Cargo features for optional dependencies:
 - `postgres`, `qdrant`, `surrealdb`, `sqlite-vss`, `sqlite-vec` - vector stores
 - `ollama`, `mistralai` - LLM providers
@@ -33,10 +34,12 @@ The project uses Cargo features for optional dependencies:
 ## Code Style Guidelines
 
 ### Error Handling
+
 - Use `thiserror` for all error types
 - Pattern: `#[derive(Error, Debug)]` with `#[error("...")]` attributes
 - Use `#[from]` for automatic error conversion
 - Example:
+
 ```rust
 #[derive(Error, Debug)]
 pub enum ChainError {
@@ -48,9 +51,11 @@ pub enum ChainError {
 ```
 
 ### Builder Pattern
+
 - Use builder pattern for configuration: `with_*` methods returning `self`
 - Always implement `Default` when sensible
 - Example:
+
 ```rust
 impl OpenAI<OpenAIConfig> {
     pub fn new(config: C) -> Self { ... }
@@ -60,22 +65,26 @@ impl OpenAI<OpenAIConfig> {
 ```
 
 ### Naming Conventions
+
 - **Snake case** for functions and variables: `fn process_document()`
 - **CamelCase** for types and traits: `struct OpenAI`, `trait LLM`
 - **SCREAMING_SNAKE_CASE** for constants: `const MAX_RETRIES: u32 = 3`
 - Prefix boolean getters with `is_` or `has_`: `is_valid()`, `has_content()`
 
 ### Imports
+
 - Use `crate::` for internal imports
 - Group external imports together, internal imports separately
 - Use `pub use module::*` for re-exports in `mod.rs`
 - Avoid absolute paths like `langchain_ai_rust::chain`
 
 ### Async/Await Patterns
+
 - Use `#[async_trait]` for trait methods
 - Mark async recursive functions with `#[async_recursion]`
 - Use `tokio::test` for async tests
 - Example:
+
 ```rust
 #[async_trait]
 impl LLM for OpenAI<C> {
@@ -84,16 +93,19 @@ impl LLM for OpenAI<C> {
 ```
 
 ### Shared State
+
 - Use `Arc<Mutex<T>>` for shared mutable state in async contexts
 - Use `Arc<RwLock<T>>` for read-heavy shared state
 - Prefer ownership transfer over excessive cloning
 
 ### Testing
+
 - Unit tests in same file using `#[cfg(test)]` module
 - Integration tests in `tests/` directory
 - Mark integration tests with `#[ignore]` if they require external services
 - Use `tokio_test` for async test assertions
 - Example:
+
 ```rust
 #[tokio::test]
 async fn test_llm_invoke() {
@@ -104,11 +116,13 @@ async fn test_llm_invoke() {
 ```
 
 ### Documentation
+
 - Document public APIs with `///` comments
 - Include examples in doc comments where helpful
 - Use `//!` for module-level documentation
 
 ### Human-in-the-Loop (HILP)
+
 - Deep agent HILP: use `interrupt_on` (per-tool `InterruptConfig` with `allowed_decisions`: approve, edit, reject), **checkpointer required**, same `thread_id` when resuming.
 - On interrupt, result is `AgentInvokeResult::Interrupt { interrupt_value }` (action_requests, review_configs); resume with `AgentInput::Resume(serde_json::json!({ "decisions": [...] }))` and same config.
 - Decision order must match `action_requests`. Subagents can override `interrupt_on` via `with_subagent_and_interrupt_on`. See [Human-in-the-loop](https://docs.langchain.com/oss/python/deepagents/human-in-the-loop) and example `deep_agent_human_in_the_loop`.

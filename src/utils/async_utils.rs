@@ -1,18 +1,18 @@
-//! 异步操作优化工具
+//! Async Operation Optimization Tools
 //!
-//! 提供并行化、批量处理等异步优化功能。
+//! Provides async optimization features such as parallelization and batch processing.
 
 use std::future::Future;
 
-/// 并行执行多个 Future，返回所有结果
+/// Execute multiple Futures in parallel and return all results
 ///
-/// # 参数
-/// - `futures`: Future 列表
+/// # Parameters
+/// - `futures`: List of Futures
 ///
-/// # 返回
-/// 所有 Future 的结果向量
+/// # Returns
+/// Vector of results from all Futures
 ///
-/// # 示例
+/// # Example
 /// ```rust,no_run
 /// use langchain_ai_rust::utils::join_all;
 ///
@@ -34,9 +34,9 @@ where
     futures::future::join_all(futures).await
 }
 
-/// 并行执行多个 Future，返回第一个成功的结果或所有错误
+/// Execute multiple Futures in parallel and return the first successful result or all errors
 ///
-/// 类似于 `futures::future::try_join_all`，但提供更清晰的错误处理。
+/// Similar to `futures::future::try_join_all`, but provides clearer error handling.
 pub async fn try_join_all<T, E, F>(futures: Vec<F>) -> Result<Vec<T>, E>
 where
     F: Future<Output = Result<T, E>> + Send,
@@ -46,17 +46,17 @@ where
     futures::future::try_join_all(futures).await
 }
 
-/// 批量处理数据，并行执行
+/// Batch process data with parallel execution
 ///
-/// # 参数
-/// - `items`: 要处理的数据项
-/// - `batch_size`: 每批处理的数量
-/// - `processor`: 处理函数
+/// # Parameters
+/// - `items`: Data items to process
+/// - `batch_size`: Number of items per batch
+/// - `processor`: Processing function
 ///
-/// # 返回
-/// 所有处理结果的向量
+/// # Returns
+/// Vector of all processing results
 ///
-/// # 示例
+/// # Example
 /// ```rust,no_run
 /// use langchain_ai_rust::utils::batch_process;
 ///
@@ -86,7 +86,7 @@ where
     results
 }
 
-/// 批量处理数据，并行执行（带错误处理）
+/// Batch process data with parallel execution (with error handling)
 pub async fn batch_process_result<T, R, E, F, Fut>(
     items: Vec<T>,
     batch_size: usize,
@@ -110,9 +110,9 @@ where
     Ok(results)
 }
 
-/// 并行执行多个 Future，使用 tokio::spawn
+/// Execute multiple Futures in parallel using tokio::spawn
 ///
-/// 适用于 CPU 密集型或长时间运行的任务。
+/// Suitable for CPU-intensive or long-running tasks.
 pub async fn spawn_all<T, F>(futures: Vec<F>) -> Vec<Result<T, tokio::task::JoinError>>
 where
     F: Future<Output = T> + Send + 'static,
@@ -131,7 +131,7 @@ mod tests {
     #[tokio::test]
     async fn test_join_all() {
         type PinBoxi32 = Pin<Box<dyn Future<Output = i32> + Send>>;
-        
+
         let futures: Vec<PinBoxi32> = vec![
             Box::pin(async { 1 }),
             Box::pin(async { 2 }),
@@ -144,7 +144,7 @@ mod tests {
     #[tokio::test]
     async fn test_try_join_all() {
         type PinBoxResultI32 = Pin<Box<dyn Future<Output = Result<i32, String>> + Send>>;
-        
+
         let futures: Vec<PinBoxResultI32> = vec![
             Box::pin(async { Ok::<i32, String>(1) }),
             Box::pin(async { Ok(2) }),

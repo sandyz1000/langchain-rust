@@ -1,17 +1,16 @@
-//! 相似度计算工具函数
-//!
-//! 提供统一的相似度计算函数，支持多种精度和批量计算。
+//! Similarity calculation helper functions
+//! Provides unified similarity calculation functions supporting multiple precisions and batch operations.
 
-/// 计算两个向量的余弦相似度 (f64 精度)
+/// Calculates the cosine similarity between two vectors (f64 precision)
 ///
-/// # 参数
-/// - `vec1`: 第一个向量
-/// - `vec2`: 第二个向量
+/// # Parameters
+/// - `vec1`: The first vector
+/// - `vec2`: The second vector
 ///
-/// # 返回
-/// 余弦相似度值，范围在 [-1, 1] 之间
+/// # Returns
+/// Cosine similarity value, ranging from [-1, 1]
 ///
-/// # 示例
+/// # Example
 /// ```rust
 /// use langchain_ai_rust::utils::cosine_similarity_f64;
 ///
@@ -36,16 +35,16 @@ pub fn cosine_similarity_f64(vec1: &[f64], vec2: &[f64]) -> f64 {
     dot_product / (magnitude_vec1 * magnitude_vec2)
 }
 
-/// 计算两个向量的余弦相似度 (f32 精度)
+/// Calculates the cosine similarity between two vectors (f32 precision)
 ///
-/// # 参数
-/// - `vec1`: 第一个向量
-/// - `vec2`: 第二个向量
+/// # Parameters
+/// - `vec1`: The first vector
+/// - `vec2`: The second vector
 ///
-/// # 返回
-/// 余弦相似度值，范围在 [-1, 1] 之间（返回 f64 以保持精度）
+/// # Returns
+/// Cosine similarity value, ranging from [-1, 1] (returns f64 to maintain precision)
 ///
-/// # 示例
+/// # Example
 /// ```rust
 /// use langchain_ai_rust::utils::cosine_similarity_f32;
 ///
@@ -70,18 +69,18 @@ pub fn cosine_similarity_f32(vec1: &[f32], vec2: &[f32]) -> f64 {
     (dot_product / (norm_a * norm_b)) as f64
 }
 
-/// 批量计算余弦相似度
+/// Batch calculates cosine similarity
 ///
-/// 计算一个查询向量与多个目标向量的相似度。
+/// Calculates the similarity between a query vector and multiple target vectors.
 ///
-/// # 参数
-/// - `query`: 查询向量
-/// - `targets`: 目标向量列表
+/// # Parameters
+/// - `query`: The query vector
+/// - `targets`: A list of target vectors
 ///
-/// # 返回
-/// 每个目标向量与查询向量的相似度值列表
+/// # Returns
+/// A list of similarity values for each target vector with the query vector
 ///
-/// # 示例
+/// # Example
 /// ```rust
 /// use langchain_ai_rust::utils::batch_cosine_similarity_f64;
 ///
@@ -101,7 +100,7 @@ pub fn batch_cosine_similarity_f64(query: &[f64], targets: &[Vec<f64>]) -> Vec<f
         .collect()
 }
 
-/// 批量计算余弦相似度 (f32 精度)
+/// Batch calculates cosine similarity (f32 precision)
 pub fn batch_cosine_similarity_f32(query: &[f32], targets: &[Vec<f32>]) -> Vec<f64> {
     targets
         .iter()
@@ -109,18 +108,18 @@ pub fn batch_cosine_similarity_f32(query: &[f32], targets: &[Vec<f32>]) -> Vec<f
         .collect()
 }
 
-/// 计算文本相似度（基于词重叠的简单方法）
+/// Calculates text similarity (based on simple word overlap method)
 ///
-/// 使用 Jaccard 相似度计算两个文本的相似度。
+/// Uses Jaccard similarity to calculate the similarity between two texts.
 ///
-/// # 参数
-/// - `text1`: 第一个文本
-/// - `text2`: 第二个文本
+/// # Parameters
+/// - `text1`: The first text
+/// - `text2`: The second text
 ///
-/// # 返回
-/// 相似度值，范围在 [0, 1] 之间
+/// # Returns
+/// Similarity value, ranging from [0, 1]
 ///
-/// # 示例
+/// # Example
 /// ```rust
 /// use langchain_ai_rust::utils::text_similarity;
 ///

@@ -1,16 +1,16 @@
 use thiserror::Error;
 
-/// Tool 相关的所有错误类型
+/// Tool-related error types
 #[derive(Error, Debug)]
 pub enum ToolError {
-    // ============ 执行错误 ============
+    // ============ Execution Errors ============
     #[error("Execution failed: {0}")]
     ExecutionError(String),
 
     #[error("Tool not found: {0}")]
     ToolNotFound(String),
 
-    // ============ 输入验证错误 ============
+    // ============ Input Validation Errors ============
     #[error("Invalid input: {0}")]
     InvalidInputError(String),
 
@@ -20,7 +20,7 @@ pub enum ToolError {
     #[error("Missing required input: {0}")]
     MissingInput(String),
 
-    // ============ 资源错误 ============
+    // ============ Resource Errors ============
     #[error("Timeout: {0}")]
     TimeoutError(String),
 
@@ -30,28 +30,28 @@ pub enum ToolError {
     #[error("Resource not found: {0}")]
     ResourceNotFound(String),
 
-    // ============ 权限和安全错误 ============
+    // ============ Permission and Security Errors ============
     #[error("Permission denied: {0}")]
     PermissionError(String),
 
     #[error("Security error: {0}")]
     SecurityError(String),
 
-    // ============ 配置错误 ============
+    // ============ Configuration Errors ============
     #[error("Configuration error: {0}")]
     ConfigurationError(String),
 
     #[error("Missing configuration: {0}")]
     MissingConfiguration(String),
 
-    // ============ 外部服务错误 ============
+    // ============ External Service Errors ============
     #[error("External service error: {0}")]
     ExternalServiceError(String),
 
     #[error("Network error: {0}")]
     NetworkError(String),
 
-    // ============ 内部错误 ============
+    // ============ Internal Errors ============
     #[error("Internal error: {0}")]
     InternalError(String),
 

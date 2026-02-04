@@ -1,50 +1,50 @@
-//! LLM 客户端通用配置和接口
+//! Common Configuration and Interface for LLM Clients
 //!
-//! 提供所有 LLM 客户端共享的配置模式和辅助函数。
+//! Provides shared configuration patterns and helper functions for all LLM clients.
 
 use crate::language_models::{llm::LLM, options::CallOptions};
 
-/// LLM 客户端通用配置 trait
+/// Common Configuration Trait for LLM Clients
 ///
-/// 为所有 LLM 客户端提供统一的配置接口。
+/// Provides a unified configuration interface for all LLM clients.
 pub trait LLMConfig: Send + Sync {
-    /// 获取模型名称
+    /// Get the model name
     fn model(&self) -> &str;
 
-    /// 获取调用选项
+    /// Get the call options
     fn options(&self) -> &CallOptions;
 
-    /// 设置模型
+    /// Set the model
     fn set_model(&mut self, model: String);
 
-    /// 设置调用选项
+    /// Set the call options
     fn set_options(&mut self, options: CallOptions);
 }
 
-/// LLM 客户端构建器 trait
+/// Builder Trait for LLM Clients
 ///
-/// 为所有 LLM 客户端提供统一的构建器模式。
+/// Provides a unified builder pattern for all LLM clients.
 ///
-/// 注意：这是一个标记 trait，具体的实现由各个 LLM 客户端提供。
-/// 这个 trait 主要用于文档和类型约束。
+/// Note: This is a marker trait; specific implementations are provided by each LLM client.
+/// This trait is primarily used for documentation and type constraints.
 pub trait LLMBuilder: Sized {
-    /// 创建新的客户端实例
+    /// Create a new client instance
     fn new() -> Self;
 
-    /// 设置模型
+    /// Set the model
     fn with_model<S: Into<String>>(self, model: S) -> Self;
 
-    /// 设置调用选项
+    /// Set the call options
     fn with_options(self, options: CallOptions) -> Self;
 }
 
-/// LLM 客户端辅助函数
+/// Helper Functions for LLM Clients
 pub struct LLMHelpers;
 
 impl LLMHelpers {
-    /// 验证模型名称格式
+    /// Validate the model name format
     ///
-    /// 检查模型名称是否符合基本格式要求。
+    /// Check if the model name meets basic format requirements.
     pub fn validate_model_name(model: &str) -> Result<(), String> {
         if model.is_empty() {
             return Err("Model name cannot be empty".to_string());
@@ -55,50 +55,50 @@ impl LLMHelpers {
         Ok(())
     }
 
-    /// 从环境变量获取 API key
+    /// Get API Key from Environment Variables
     ///
-    /// # 参数
-    /// - `env_var`: 环境变量名称
-    /// - `default`: 如果环境变量不存在时的默认值
+    /// # Parameters
+    /// - `env_var`: Environment variable name
+    /// - `default`: Default value if the environment variable does not exist
     ///
-    /// # 返回
-    /// API key 字符串
+    /// # Returns
+    /// API key string
     pub fn get_api_key_from_env(env_var: &str, default: &str) -> String {
         std::env::var(env_var).unwrap_or_else(|_| default.to_string())
     }
 
-    /// 合并调用选项
+    /// Merge Call Options
     ///
-    /// 将两个 CallOptions 合并，第二个选项的字段会覆盖第一个。
+    /// Merge two CallOptions, where the second option's fields override the first.
     pub fn merge_options(_base: CallOptions, override_opts: CallOptions) -> CallOptions {
-        // 注意：这需要根据 CallOptions 的实际结构来实现
-        // 目前返回 override_opts，实际实现应该合并字段
+        // Note: This needs to be implemented based on the actual structure of CallOptions
+        // Currently returns override_opts; actual implementation should merge fields
         override_opts
     }
 
-    /// 创建默认的调用选项
+    /// Create default call options
     pub fn default_options() -> CallOptions {
         CallOptions::default()
     }
 }
 
-/// LLM 客户端初始化配置
+/// LLM Client Initialization Configuration
 ///
-/// 包含所有 LLM 客户端共享的初始化参数。
+/// Contains shared initialization parameters for all LLM clients.
 #[derive(Debug, Clone)]
 pub struct LLMInitConfig {
-    /// 模型名称
+    /// Model name
     pub model: Option<String>,
-    /// API key（如果适用）
+    /// API key (if applicable)
     pub api_key: Option<String>,
-    /// Base URL（如果适用）
+    /// Base URL (if applicable)
     pub base_url: Option<String>,
-    /// 调用选项
+    /// Call options
     pub options: Option<CallOptions>,
 }
 
 impl LLMInitConfig {
-    /// 创建新的配置
+    /// Create a new configuration
     pub fn new() -> Self {
         Self {
             model: None,
@@ -108,25 +108,25 @@ impl LLMInitConfig {
         }
     }
 
-    /// 设置模型
+    /// Set the model
     pub fn with_model<S: Into<String>>(mut self, model: S) -> Self {
         self.model = Some(model.into());
         self
     }
 
-    /// 设置 API key
+    /// Set API key
     pub fn with_api_key<S: Into<String>>(mut self, api_key: S) -> Self {
         self.api_key = Some(api_key.into());
         self
     }
 
-    /// 设置 base URL
+    /// Set base URL
     pub fn with_base_url<S: Into<String>>(mut self, base_url: S) -> Self {
         self.base_url = Some(base_url.into());
         self
     }
 
-    /// 设置调用选项
+    /// Set call options
     pub fn with_options(mut self, options: CallOptions) -> Self {
         self.options = Some(options);
         self
@@ -139,16 +139,16 @@ impl Default for LLMInitConfig {
     }
 }
 
-/// 流式响应处理 trait
+/// Trait for Streaming Response Handling
 ///
-/// 为所有支持流式响应的 LLM 客户端提供统一接口。
+/// Provides a unified interface for all LLM clients that support streaming responses.
 pub trait StreamingLLM: LLM {
-    /// 检查是否支持流式响应
+    /// Check if streaming responses are supported
     fn supports_streaming(&self) -> bool {
-        true // 大多数现代 LLM 都支持流式响应
+        true // Most modern LLMs support streaming responses
     }
 
-    /// 获取流式响应的默认配置
+    /// Get the default configuration for streaming responses
     fn default_streaming_config(&self) -> CallOptions {
         CallOptions::default()
     }

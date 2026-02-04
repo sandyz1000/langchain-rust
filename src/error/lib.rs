@@ -1,18 +1,19 @@
-//! langchain-ai-rust 错误处理模块
+//! langchain-ai-rust error handling module
 //!
-//! 提供统一的错误类型定义和处理模式。
-//! 
-//! # 使用示例
+//! Provides unified error type definitions and handling patterns.
+//!
+//! # Usage Example
 //!
 //! ```rust
 //! use langchain_ai_rust::error::LangChainError;
 //!
 //! async fn example() -> Result<(), LangChainError> {
-//!     // 使用 ? 操作符传播错误
+//!     // Use the ? operator to propagate errors
 //!     some_operation().await?;
 //!     Ok(())
 //! }
-//! ```
+// ! }
+// ! ```
 
 pub mod chain;
 pub mod llm;

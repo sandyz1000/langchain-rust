@@ -1,6 +1,5 @@
-//! 通用工具函数模块
-//!
-//! 提供项目中常用的工具函数，避免代码重复。
+//! Common helper functions module
+//! Provides commonly used helper functions in the project to avoid code duplication.
 
 pub mod async_utils;
 pub mod builder;

@@ -1,6 +1,6 @@
-use std::collections::HashMap;
-
+use std::pin::Pin;
 use std::sync::Arc;
+use std::{collections::HashMap, future::Future};
 
 use super::{error::LangGraphError, state::State};
 
@@ -16,11 +16,8 @@ pub enum EdgeType<S: State> {
     /// Conditional edge - dynamic routing based on state
     Conditional {
         condition: Arc<
-            dyn Fn(
-                    &S,
-                ) -> std::pin::Pin<
-                    Box<dyn std::future::Future<Output = Result<String, LangGraphError>> + Send>,
-                > + Send
+            dyn Fn(&S) -> Pin<Box<dyn Future<Output = Result<String, LangGraphError>> + Send>>
+                + Send
                 + Sync,
         >,
         mapping: HashMap<String, String>, // Maps condition result to node name
@@ -64,7 +61,7 @@ impl<S: State> Edge<S> {
     ) -> Self
     where
         F: Fn(&S) -> Fut + Send + Sync + 'static,
-        Fut: std::future::Future<Output = Result<String, LangGraphError>> + Send + 'static,
+        Fut: Future<Output = Result<String, LangGraphError>> + Send + 'static,
     {
         Self {
             from: from.into(),
@@ -118,7 +115,7 @@ pub fn conditional_edge<S: State, F, Fut>(
 ) -> Edge<S>
 where
     F: Fn(&S) -> Fut + Send + Sync + 'static,
-    Fut: std::future::Future<Output = Result<String, LangGraphError>> + Send + 'static,
+    Fut: Future<Output = Result<String, LangGraphError>> + Send + 'static,
 {
     Edge::conditional(from, condition, mapping)
 }

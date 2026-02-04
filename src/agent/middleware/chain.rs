@@ -1,6 +1,5 @@
-//! Middleware 链优化执行器
-//!
-//! 提供优化的 Middleware 链执行，支持早期退出、并行执行等。
+//! Middleware chain optimization executor
+//! Provides optimized middleware chain execution supporting early exit, parallel execution, and more.
 
 use std::sync::Arc;
 
@@ -13,26 +12,26 @@ use crate::language_models::GenerateResult;
 use crate::prompt::PromptArgs;
 use crate::schemas::agent::{AgentAction, AgentFinish};
 
-/// Middleware 执行结果
+/// Middleware execution result
 #[derive(Debug)]
 pub enum MiddlewareResult<T> {
-    /// 继续执行，使用修改后的值
+    /// Continue execution with the modified value
     Modified(T),
-    /// 继续执行，使用原始值
+    /// Continue execution with the original value
     Unchanged,
-    /// 停止执行链
+    /// Stop the middleware chain
     Stop,
-    /// 错误
+    /// Error
     Error(MiddlewareError),
 }
 
 impl<T> MiddlewareResult<T> {
-    /// 检查是否应该停止执行
+    /// Check whether the execution should stop
     pub fn should_stop(&self) -> bool {
         matches!(self, MiddlewareResult::Stop | MiddlewareResult::Error(_))
     }
 
-    /// 提取值（如果已修改）
+    /// Extract the value (if it has been modified)
     pub fn into_option(self) -> Option<T> {
         match self {
             MiddlewareResult::Modified(value) => Some(value),
@@ -43,13 +42,13 @@ impl<T> MiddlewareResult<T> {
     }
 }
 
-/// 优化的 Middleware 链执行器
+/// Optimized middleware chain executor
 pub struct MiddlewareChainExecutor;
 
 impl MiddlewareChainExecutor {
-    /// 执行 before_agent_plan 链
+    /// Execute the before_agent_plan chain
     ///
-    /// 支持早期退出和值修改。
+    /// Supports early exit and value modification.
     pub async fn execute_before_agent_plan(
         middleware: &[Arc<dyn Middleware>],
         input: &PromptArgs,
@@ -59,8 +58,8 @@ impl MiddlewareChainExecutor {
         let mut current_input = input.clone();
 
         for mw in middleware {
-            // 尝试使用 runtime-aware 版本（如果有）
-            // 注意：这里需要 RuntimeRequest，但在简化版本中我们使用非 runtime 版本
+            // Try to use runtime-aware version (if available)
+            // Note: Here we need RuntimeRequest, but in the simplified version we use the non-runtime version
             let modified = mw.before_agent_plan(&current_input, steps, context).await?;
 
             if let Some(new_input) = modified {
@@ -75,7 +74,7 @@ impl MiddlewareChainExecutor {
         }
     }
 
-    /// 执行 before_model_call 链
+    /// Execute the before_model_call chain
     pub async fn execute_before_model_call(
         middleware: &[Arc<dyn Middleware>],
         request: &ModelRequest,
@@ -95,7 +94,7 @@ impl MiddlewareChainExecutor {
         Ok(modified_request)
     }
 
-    /// 执行 after_model_call 链
+    /// Execute the after_model_call chain
     pub async fn execute_after_model_call(
         middleware: &[Arc<dyn Middleware>],
         request: &ModelRequest,
@@ -118,7 +117,7 @@ impl MiddlewareChainExecutor {
         Ok(modified_response)
     }
 
-    /// 执行 before_tool_call 链
+    /// Execute the before_tool_call chain
     pub async fn execute_before_tool_call(
         middleware: &[Arc<dyn Middleware>],
         action: &AgentAction,
@@ -147,7 +146,7 @@ impl MiddlewareChainExecutor {
         }
     }
 
-    /// 执行 after_tool_call 链
+    /// Execute the after_tool_call chain
     pub async fn execute_after_tool_call(
         middleware: &[Arc<dyn Middleware>],
         action: &AgentAction,
@@ -183,7 +182,7 @@ impl MiddlewareChainExecutor {
         }
     }
 
-    /// 执行 before_finish 链
+    /// Execute the before_finish chain
     pub async fn execute_before_finish(
         middleware: &[Arc<dyn Middleware>],
         finish: &AgentFinish,
@@ -212,7 +211,7 @@ impl MiddlewareChainExecutor {
         }
     }
 
-    /// 执行 after_finish 链（不返回值，只用于副作用）
+    /// Execute the after_finish chain (does not return a value, only used for side effects)
     pub async fn execute_after_finish(
         middleware: &[Arc<dyn Middleware>],
         finish: &AgentFinish,
@@ -233,16 +232,16 @@ impl MiddlewareChainExecutor {
     }
 }
 
-/// Middleware 链配置
+/// Middleware chain configuration
 ///
-/// 用于配置 Middleware 链的执行行为。
+/// Used to configure the execution behavior of the middleware chain.
 #[derive(Debug, Clone)]
 pub struct MiddlewareChainConfig {
-    /// 是否允许早期退出
+    /// Whether to allow early exit
     pub allow_early_exit: bool,
-    /// 是否并行执行独立的 middleware
+    /// Whether to parallelize execution of independent middleware
     pub enable_parallel_execution: bool,
-    /// 最大 middleware 数量
+    /// Maximum number of middleware
     pub max_middleware_count: Option<usize>,
 }
 

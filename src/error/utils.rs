@@ -1,62 +1,62 @@
-//! 错误处理工具函数
+//! Error Handling Utility Functions
 //!
-//! 提供错误链追踪、上下文信息和错误代码等实用功能。
+//! Provides practical functionality for error chain tracking, context information, and error codes.
 
 use std::fmt;
 
 use super::LangChainError;
 
-/// 错误代码系统
+/// Error Code System
 ///
-/// 为不同类型的错误分配唯一的错误代码，便于错误追踪和分类。
+/// Assigns unique error codes to different types of errors for easy error tracking and classification.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub enum ErrorCode {
-    /// LLM 相关错误 (1000-1999)
+    /// LLM-related errors (1000-1999)
     LLMError = 1000,
     LLMTimeout = 1001,
     LLMRateLimit = 1002,
     LLMInvalidResponse = 1003,
 
-    /// Chain 相关错误 (2000-2999)
+    /// Chain-related errors (2000-2999)
     ChainError = 2000,
     ChainMissingInput = 2001,
     ChainInvalidInput = 2002,
 
-    /// Agent 相关错误 (3000-3999)
+    /// Agent-related errors (3000-3999)
     AgentError = 3000,
     AgentToolError = 3001,
     AgentMissingObject = 3002,
     AgentMaxIterations = 3003,
 
-    /// RAG 相关错误 (4000-4999)
+    /// RAG-related errors (4000-4999)
     RAGError = 4000,
     RAGRetrieverError = 4001,
     RAGQueryEnhancementError = 4002,
     RAGRetrievalValidationError = 4003,
     RAGAnswerValidationError = 4004,
 
-    /// Multi-Agent 相关错误 (5000-5999)
+    /// Multi-Agent-related errors (5000-5999)
     MultiAgentError = 5000,
     MultiAgentNotFound = 5001,
     MultiAgentRoutingError = 5002,
     MultiAgentSkillError = 5003,
     MultiAgentHandoffError = 5004,
 
-    /// Vector Store 相关错误 (6000-6999)
+    /// Vector Store-related errors (6000-6999)
     VectorStoreError = 6000,
     VectorStoreConnectionError = 6001,
     VectorStoreQueryError = 6002,
 
-    /// Retriever 相关错误 (7000-7999)
+    /// Retriever-related errors (7000-7999)
     RetrieverError = 7000,
     RetrieverConnectionError = 7001,
 
-    /// Tool 相关错误 (8000-8999)
+    /// Tool-related errors (8000-8999)
     ToolError = 8000,
     ToolExecutionError = 8001,
     ToolValidationError = 8002,
 
-    /// 通用错误 (9000-9999)
+    /// General errors (9000-9999)
     ConfigurationError = 9000,
     IOError = 9001,
     JsonError = 9002,
@@ -64,7 +64,7 @@ pub enum ErrorCode {
 }
 
 impl ErrorCode {
-    /// 从 LangChainError 获取错误代码
+    /// Get error code from LangChainError
     pub fn from_error(error: &LangChainError) -> Self {
         match error {
             LangChainError::LLMError(_) => ErrorCode::LLMError,
@@ -82,12 +82,12 @@ impl ErrorCode {
         }
     }
 
-    /// 获取错误代码的数字值
+    /// Get the numeric value of the error code
     pub fn as_u32(self) -> u32 {
         self as u32
     }
 
-    /// 获取错误代码的描述
+    /// Get the description of the error code
     pub fn description(self) -> &'static str {
         match self {
             ErrorCode::LLMError => "LLM operation failed",
@@ -133,21 +133,21 @@ impl fmt::Display for ErrorCode {
     }
 }
 
-/// 错误上下文信息
+/// Error Context Information
 ///
-/// 用于在错误发生时添加上下文信息，便于调试和追踪。
+/// Used to add context information when an error occurs for easy debugging and tracking.
 #[derive(Debug, Clone)]
 pub struct ErrorContext {
-    /// 操作名称
+    /// Operation name
     pub operation: Option<String>,
-    /// 模块名称
+    /// Module name
     pub module: Option<String>,
-    /// 额外的上下文信息
+    /// Additional context information
     pub metadata: std::collections::HashMap<String, String>,
 }
 
 impl ErrorContext {
-    /// 创建新的错误上下文
+    /// Create a new error context
     pub fn new() -> Self {
         Self {
             operation: None,
@@ -156,25 +156,25 @@ impl ErrorContext {
         }
     }
 
-    /// 设置操作名称
+    /// Set the operation name
     pub fn with_operation(mut self, operation: impl Into<String>) -> Self {
         self.operation = Some(operation.into());
         self
     }
 
-    /// 设置模块名称
+    /// Set the module name
     pub fn with_module(mut self, module: impl Into<String>) -> Self {
         self.module = Some(module.into());
         self
     }
 
-    /// 添加元数据
+    /// Add metadata
     pub fn with_metadata(mut self, key: impl Into<String>, value: impl Into<String>) -> Self {
         self.metadata.insert(key.into(), value.into());
         self
     }
 
-    /// 格式化上下文信息
+    /// Format context information
     pub fn format(&self) -> String {
         let mut parts = Vec::new();
 
@@ -209,9 +209,9 @@ impl Default for ErrorContext {
     }
 }
 
-/// 为错误添加上下文信息
+/// Add context information to errors
 ///
-/// # 示例
+/// # Example
 ///
 /// ```rust,ignore
 /// use langchain_ai_rust::error::{ErrorContext, LangChainError};
@@ -258,9 +258,9 @@ pub fn error_context(error: &LangChainError) -> ErrorContext {
     context
 }
 
-/// 获取错误的完整信息，包括错误代码和上下文
+/// Get complete error information, including error code and context
 ///
-/// # 示例
+/// # Example
 ///
 /// ```rust,ignore
 /// use langchain_ai_rust::error::{error_info, LangChainError};

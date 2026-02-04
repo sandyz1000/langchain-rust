@@ -1,16 +1,15 @@
-//! 向量操作工具函数
-//!
-//! 提供向量平均、求和等常用操作。
+//! Vector operation helper functions
+//! Provides common operations such as averaging and summing vectors.
 
-/// 计算多个向量的平均值
+/// Calculates the average of multiple vectors
 ///
-/// # 参数
-/// - `embeddings`: 向量列表
+/// # Parameters
+/// - `embeddings`: A list of vectors
 ///
-/// # 返回
-/// 平均向量
+/// # Returns
+/// The average vector
 ///
-/// # 示例
+/// # Example
 /// ```rust
 /// use langchain_ai_rust::utils::mean_embedding_f64;
 ///
@@ -42,15 +41,15 @@ pub fn mean_embedding_f64(embeddings: &[Vec<f64>]) -> Vec<f64> {
         .collect()
 }
 
-/// 计算多个向量的和
+/// Calculates the sum of multiple vectors
 ///
-/// # 参数
-/// - `vectors`: 向量列表
+/// # Parameters
+/// - `vectors`: A list of vectors
 ///
-/// # 返回
-/// 向量和
+/// # Returns
+/// The sum of vectors
 ///
-/// # 示例
+/// # Example
 /// ```rust
 /// use langchain_ai_rust::utils::sum_vectors_f64;
 ///
@@ -75,7 +74,7 @@ pub fn sum_vectors_f64(vectors: &[Vec<f64>]) -> Vec<f64> {
     sum_vec
 }
 
-/// 计算多个向量的平均值 (f32 精度)
+/// Calculates the average of multiple vectors (f32 precision)
 pub fn mean_embedding_f32(embeddings: &[Vec<f32>]) -> Vec<f32> {
     if embeddings.is_empty() {
         return Vec::new();
@@ -97,7 +96,7 @@ pub fn mean_embedding_f32(embeddings: &[Vec<f32>]) -> Vec<f32> {
         .collect()
 }
 
-/// 计算多个向量的和 (f32 精度)
+/// Calculates the sum of multiple vectors (f32 precision)
 pub fn sum_vectors_f32(vectors: &[Vec<f32>]) -> Vec<f32> {
     if vectors.is_empty() {
         return Vec::new();

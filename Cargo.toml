@@ -12,13 +12,7 @@ embeddings, vector stores, and 20+ document loaders. A LangChain port supporting
 OpenAI, Claude, Gemini, Mistral, Bedrock, Ollama, and more. Includes streaming,
 structured output, and multi-agent (Deep Agent) workflows.
 """
-keywords = [
-    "langchain",
-    "llm",
-    "agent",
-    "rag",
-    "deep-agent",
-]
+keywords = ["langchain", "llm", "agent", "rag", "deep-agent"]
 categories = [
     "development-tools",
     "asynchronous",
@@ -67,7 +61,11 @@ pgvector = { version = "0.4.0", features = [
     "postgres",
     "sqlx",
 ], optional = true }
-text-splitter = { version = "0.29", features = ["tiktoken-rs", "markdown", "code"] }
+text-splitter = { version = "0.29", features = [
+    "tiktoken-rs",
+    "markdown",
+    "code",
+] }
 surrealdb = { version = "2.0.2", optional = true, default-features = false }
 csv = "1.3.0"
 urlencoding = "2.1.3"
@@ -76,7 +74,7 @@ serde_yaml = { version = "0.9", optional = true }
 quick-xml = { version = "0.31", optional = true, features = ["async-tokio"] }
 calamine = { version = "0.24", optional = true }
 lopdf = { version = "0.34.0", features = ["nom_parser"], optional = true }
-pdf-extract = { version = "0.7.8", optional = true  }
+pdf-extract = { version = "0.7.8", optional = true }
 thiserror = "2.0.0"
 futures-util = "0.3.30"
 async-stream = "0.3.5"
@@ -203,6 +201,7 @@ testcontainers = "0.23"
 env_logger = "0.11"
 chrono = { version = "0.4", features = ["serde"] }
 mongodb = "2"
+dotenvy = "0.15.7"
 
 [build-dependencies]
 cc = { version = "1", optional = true }
