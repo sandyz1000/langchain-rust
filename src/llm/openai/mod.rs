@@ -125,9 +125,10 @@ impl<C: Config + Send + Sync + 'static> LLM for OpenAI<C> {
                                 }
                             }
                         }
-                        Err(err) => {
-                            eprintln!("Error from streaming response: {:?}", err);
-                        }
+                            Err(err) => {
+                                log::warn!("Error from streaming response");
+                                return Err(LLMError::ApiError(err.to_string()));
+                            }
                     }
                 }
                 Ok(generate_result)
@@ -340,8 +341,11 @@ mod tests {
     use tokio::sync::Mutex;
     use tokio::test;
 
-    #[test]
-    #[ignore]
+    /// Integration test requiring OpenAI API key
+    ///
+    /// Run with: OPENAI_API_KEY=your_key cargo test --features openai test_invoke -- --ignored
+    #[tokio::test]
+    #[ignore = "Requires OPENAI_API_KEY environment variable - run with: cargo test --features openai test_invoke -- --ignored"]
     async fn test_invoke() {
         let message_complete = Arc::new(Mutex::new(String::new()));
 
@@ -381,8 +385,11 @@ mod tests {
         }
     }
 
-    #[test]
-    #[ignore]
+    /// Integration test requiring OpenAI API key - tests streaming response handling
+    ///
+    /// Run with: OPENAI_API_KEY=your_key cargo test --features openai test_generate_function -- --ignored
+    #[tokio::test]
+    #[ignore = "Requires OPENAI_API_KEY environment variable - run with: cargo test --features openai test_generate_function -- --ignored"]
     async fn test_generate_function() {
         let message_complete = Arc::new(Mutex::new(String::new()));
 
@@ -428,8 +435,11 @@ mod tests {
         }
     }
 
-    #[test]
-    #[ignore]
+    /// Integration test requiring OpenAI API key - tests streaming response
+    ///
+    /// Run with: OPENAI_API_KEY=your_key cargo test --features openai test_openai_stream -- --ignored
+    #[tokio::test]
+    #[ignore = "Requires OPENAI_API_KEY environment variable - run with: cargo test --features openai test_openai_stream -- --ignored"]
     async fn test_openai_stream() {
         // Setup the OpenAI client with the necessary options
         let open_ai = OpenAI::default().with_model(OpenAIModel::Gpt35.to_string());
@@ -454,8 +464,11 @@ mod tests {
             .await;
     }
 
-    #[test]
-    #[ignore]
+    /// Integration test requiring OpenAI API key - tests function calling
+    ///
+    /// Run with: OPENAI_API_KEY=your_key cargo test --features openai test_function -- --ignored
+    #[tokio::test]
+    #[ignore = "Requires OPENAI_API_KEY environment variable - run with: cargo test --features openai test_function -- --ignored"]
     async fn test_function() {
         let mut functions = Vec::new();
         functions.push(FunctionDefinition {
@@ -484,8 +497,11 @@ mod tests {
         println!("{}", response)
     }
 
-    #[test]
-    #[ignore]
+    /// Integration test requiring OpenAI API key - tests image message handling
+    ///
+    /// Run with: OPENAI_API_KEY=your_key cargo test --features openai test_generate_with_image_message -- --ignored
+    #[tokio::test]
+    #[ignore = "Requires OPENAI_API_KEY environment variable - run with: cargo test --features openai test_generate_with_image_message -- --ignored"]
     async fn test_generate_with_image_message() {
         // Setup the OpenAI client with the necessary options
         let open_ai =
