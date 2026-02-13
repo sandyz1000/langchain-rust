@@ -20,8 +20,6 @@
 use crate::agent::utils::convert_messages_to_prompt_args;
 use crate::prompt_args;
 use crate::schemas::Message;
-use crate::schemas::MessageType;
-use crate::ChainError;
 
 /// Unit tests for convert_messages_to_prompt_args function
 ///
@@ -103,16 +101,13 @@ mod unit_tests {
         let result = convert_messages_to_prompt_args(input);
         assert!(result.is_ok());
         let args = result.unwrap();
-        
+
         // Should preserve existing chat_history, not overwrite with messages
         let chat_history = args["chat_history"]
             .as_array()
             .expect("chat_history should be an array");
         assert_eq!(chat_history.len(), 1);
-        assert_eq!(
-            chat_history[0]["content"],
-            serde_json::json!("Previous")
-        );
+        assert_eq!(chat_history[0]["content"], serde_json::json!("Previous"));
     }
 
     #[test]
@@ -176,48 +171,54 @@ mod unit_tests {
 /// - Running external services (e.g., Ollama locally)
 #[cfg(test)]
 mod integration_tests {
-    use crate::agent::{create_agent, ConversationalAgentBuilder};
+    use crate::agent::{AgentExecutor, ConversationalAgentBuilder};
+    use crate::chain::Chain;
     use crate::llm::openai::{OpenAI, OpenAIModel};
+    use std::sync::Arc;
+
+    #[cfg(feature = "ollama")]
+    use crate::llm::ollama::{client::OllamaClient, Ollama};
 
     #[tokio::test]
     #[ignore = "Requires OPENAI_API_KEY environment variable"]
     async fn test_agent_with_openai() -> Result<(), Box<dyn std::error::Error>> {
         let llm = OpenAI::new(
-            crate::llm::openai::OpenAIConfig::new()
-                .with_api_key(std::env::var("OPENAI_API_KEY")?),
+            crate::llm::openai::OpenAIConfig::new().with_api_key(std::env::var("OPENAI_API_KEY")?),
         )
         .with_model(OpenAIModel::Gpt35);
 
         let agent = ConversationalAgentBuilder::new()
-            .llm(llm)
             .prefix("You are a helpful assistant.".to_string())
-            .build()?;
+            .build(llm)?;
+        let executor = AgentExecutor::from_agent(agent);
 
-        let result = agent
-            .invoke("Hello, how are you?".to_string())
+        let result = executor
+            .invoke(crate::prompt_args! { "input" => "Hello, how are you?" })
             .await?;
-        
+
         assert!(!result.is_empty(), "Response should not be empty");
         Ok(())
     }
 
+    #[cfg(feature = "ollama")]
     #[tokio::test]
     #[ignore = "Requires running Ollama instance (ollama serve)"]
     async fn test_agent_with_ollama() -> Result<(), Box<dyn std::error::Error>> {
-        let llm = crate::llm::ollama::Ollama::new(
-            "llama3".to_string(),
-            Some(std::env::var("OLLAMA_HOST").unwrap_or_else(|_| "http://localhost:11434".to_string())),
-        );
+        let host =
+            std::env::var("OLLAMA_HOST").unwrap_or_else(|_| "http://localhost".to_string());
+        let port = 11434;
+        let client = Arc::new(OllamaClient::new(host, port));
+        let llm = Ollama::new(client, "llama3".to_string(), None);
 
         let agent = ConversationalAgentBuilder::new()
-            .llm(llm)
             .prefix("You are a helpful assistant.".to_string())
-            .build()?;
+            .build(llm)?;
+        let executor = AgentExecutor::from_agent(agent);
 
-        let result = agent
-            .invoke("Hello, how are you?".to_string())
+        let result = executor
+            .invoke(crate::prompt_args! { "input" => "Hello, how are you?" })
             .await?;
-        
+
         assert!(!result.is_empty(), "Response should not be empty");
         Ok(())
     }
@@ -233,8 +234,8 @@ mod integration_tests {
 mod workflow_tests {
     use crate::chain::Chain;
     use crate::llm::openai::{OpenAI, OpenAIModel};
-    use crate::prompt::HumanMessagePromptTemplate;
     use crate::message_formatter;
+    use crate::prompt::{HumanMessagePromptTemplate, MessageOrTemplate};
     use crate::prompt_args;
     use crate::template_fstring;
 
@@ -251,11 +252,10 @@ mod workflow_tests {
             "Translate this to French: {text}",
             "text",
         ));
-        let formatter = message_formatter![prompt.into()];
+        let formatter = message_formatter![MessageOrTemplate::Template(prompt.into())];
 
         // Step 2: Configure the LLM
-        let llm = OpenAI::default()
-            .with_model(OpenAIModel::Gpt35.to_string());
+        let llm = OpenAI::default().with_model(OpenAIModel::Gpt35.to_string());
 
         // Step 3: Build the chain
         let chain = crate::chain::LLMChainBuilder::new()
@@ -265,13 +265,13 @@ mod workflow_tests {
             .expect("Failed to build chain");
 
         // Step 4: Invoke the chain
-        let result = chain
-            .invoke(prompt_args! { "text" => "Hello world" })
-            .await;
+        let result = chain.invoke(prompt_args! { "text" => "Hello world" }).await;
 
         assert!(result.is_ok(), "Chain should execute successfully");
         let response = result.unwrap();
-        assert!(response.contains("Bonjour") || response.contains("French"),
-            "Response should contain French translation");
+        assert!(
+            response.contains("Bonjour") || response.contains("French"),
+            "Response should contain French translation"
+        );
     }
 }

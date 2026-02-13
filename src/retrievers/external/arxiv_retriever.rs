@@ -58,20 +58,16 @@ impl ArxivRetriever {
     /// Search arXiv for papers matching the query
     async fn search_arxiv(&self, query: &str) -> Result<Vec<Document>, RetrieverError> {
         // arXiv API endpoint
-        let url = "http://export.arxiv.org/api/query";
-
-        let params = [
-            ("search_query", query),
-            ("start", "0"),
-            ("max_results", &self.config.max_docs.to_string()),
-            ("sortBy", "relevance"),
-            ("sortOrder", "descending"),
-        ];
+        let encoded_query = urlencoding::encode(query);
+        let url = format!(
+            "http://export.arxiv.org/api/query?search_query={}&start=0&max_results={}&sortBy=relevance&sortOrder=descending",
+            encoded_query,
+            self.config.max_docs
+        );
 
         let response = self
             .client
             .get(url)
-            .query(&params)
             .send()
             .await
             .map_err(|e| RetrieverError::ArxivError(e.to_string()))?;

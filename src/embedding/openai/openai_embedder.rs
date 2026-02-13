@@ -3,7 +3,7 @@
 use crate::embedding::{embedder_trait::Embedder, EmbedderError};
 pub use async_openai::config::{AzureConfig, Config, OpenAIConfig};
 use async_openai::{
-    types::{CreateEmbeddingRequestArgs, EmbeddingInput},
+    types::embeddings::{CreateEmbeddingRequestArgs, EmbeddingInput},
     Client,
 };
 use async_trait::async_trait;
@@ -14,7 +14,7 @@ pub struct OpenAiEmbedder<C: Config> {
     model: String,
 }
 
-impl<C: Config + Send + Sync + 'static> Into<Box<dyn Embedder>> for OpenAiEmbedder<C> {
+impl<C: Clone + Config + Send + Sync + 'static> Into<Box<dyn Embedder>> for OpenAiEmbedder<C> {
     fn into(self) -> Box<dyn Embedder> {
         Box::new(self)
     }
@@ -46,7 +46,7 @@ impl Default for OpenAiEmbedder<OpenAIConfig> {
 }
 
 #[async_trait]
-impl<C: Config + Send + Sync> Embedder for OpenAiEmbedder<C> {
+impl<C: Clone + Config + Send + Sync> Embedder for OpenAiEmbedder<C> {
     async fn embed_documents(&self, documents: &[String]) -> Result<Vec<Vec<f64>>, EmbedderError> {
         let client = Client::with_config(self.config.clone());
 

@@ -69,20 +69,17 @@ impl WikipediaRetriever {
 
     /// Search Wikipedia for articles matching the query
     async fn search(&self, query: &str) -> Result<Vec<String>, RetrieverError> {
-        let url = format!("https://{}.wikipedia.org/w/api.php", self.config.language);
-
-        let params = [
-            ("action", "query"),
-            ("list", "search"),
-            ("srsearch", query),
-            ("format", "json"),
-            ("srlimit", &self.config.load_max_docs.to_string()),
-        ];
+        let encoded_query = urlencoding::encode(query);
+        let url = format!(
+            "https://{}.wikipedia.org/w/api.php?action=query&list=search&srsearch={}&format=json&srlimit={}",
+            self.config.language,
+            encoded_query,
+            self.config.load_max_docs
+        );
 
         let response = self
             .client
-            .get(&url)
-            .query(&params)
+            .get(url)
             .send()
             .await
             .map_err(|e| RetrieverError::WikipediaError(e.to_string()))?;
@@ -110,22 +107,16 @@ impl WikipediaRetriever {
 
     /// Fetch a Wikipedia page by title
     async fn fetch_page(&self, title: &str) -> Result<Document, RetrieverError> {
-        let url = format!("https://{}.wikipedia.org/w/api.php", self.config.language);
-
         let title_encoded = urlencoding::encode(title);
-        let params = [
-            ("action", "query"),
-            ("prop", "extracts"),
-            ("exintro", "true"),
-            ("explaintext", "true"),
-            ("titles", &title_encoded),
-            ("format", "json"),
-        ];
+        let url = format!(
+            "https://{}.wikipedia.org/w/api.php?action=query&prop=extracts&exintro=true&explaintext=true&titles={}&format=json",
+            self.config.language,
+            title_encoded
+        );
 
         let response = self
             .client
-            .get(&url)
-            .query(&params)
+            .get(url)
             .send()
             .await
             .map_err(|e| RetrieverError::WikipediaError(e.to_string()))?;
@@ -149,20 +140,13 @@ impl WikipediaRetriever {
                         if let Some(full_title) = page.get("title").and_then(|t| t.as_str()) {
                             if content.is_empty() {
                                 // Try to get full content if extract is empty
+                                let full_title_encoded = urlencoding::encode(full_title);
                                 let full_url = format!(
-                                    "https://{}.wikipedia.org/w/api.php",
-                                    self.config.language
+                                    "https://{}.wikipedia.org/w/api.php?action=query&prop=extracts&explaintext=true&titles={}&format=json",
+                                    self.config.language,
+                                    full_title_encoded
                                 );
-                                let full_params = [
-                                    ("action", "query"),
-                                    ("prop", "extracts"),
-                                    ("explaintext", "true"),
-                                    ("titles", full_title),
-                                    ("format", "json"),
-                                ];
-                                if let Ok(full_response) =
-                                    self.client.get(&full_url).query(&full_params).send().await
-                                {
+                                if let Ok(full_response) = self.client.get(full_url).send().await {
                                     if let Ok(full_json) = full_response.json::<Value>().await {
                                         if let Some(full_query) = full_json.get("query") {
                                             if let Some(full_pages) = full_query.get("pages") {

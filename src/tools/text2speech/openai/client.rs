@@ -1,10 +1,10 @@
 use std::sync::Arc;
 
-use async_openai::types::CreateSpeechRequestArgs;
+use async_openai::types::audio::CreateSpeechRequestArgs;
 use async_openai::Client;
 pub use async_openai::{
     config::{Config, OpenAIConfig},
-    types::{SpeechModel, SpeechResponseFormat, Voice},
+    types::audio::{SpeechModel, SpeechResponseFormat, Voice},
 };
 use async_trait::async_trait;
 use serde_json::Value;
@@ -71,7 +71,7 @@ impl Default for Text2SpeechOpenAI<OpenAIConfig> {
 }
 
 #[async_trait]
-impl<C: Config + Send + Sync> Tool for Text2SpeechOpenAI<C> {
+impl<C: Clone + Config + Send + Sync> Tool for Text2SpeechOpenAI<C> {
     fn name(&self) -> String {
         "Text2SpeechOpenAI".to_string()
     }
@@ -88,7 +88,7 @@ impl<C: Config + Send + Sync> Tool for Text2SpeechOpenAI<C> {
         let input = input
             .as_str()
             .ok_or_else(|| crate::error::ToolError::InvalidInputError("Invalid input".into()))?;
-        let client = Client::new();
+        let client = Client::with_config(self.config.clone());
         let response_format: SpeechResponseFormat = self.response_format;
 
         let request = CreateSpeechRequestArgs::default()
@@ -101,7 +101,8 @@ impl<C: Config + Send + Sync> Tool for Text2SpeechOpenAI<C> {
 
         let response = client
             .audio()
-            .speech(request)
+            .speech()
+            .create(request)
             .await
             .map_err(|e| crate::error::ToolError::ExecutionError(e.to_string()))?;
 

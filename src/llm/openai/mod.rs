@@ -2,16 +2,16 @@ use std::pin::Pin;
 
 pub use async_openai::config::{AzureConfig, Config, OpenAIConfig};
 
-use async_openai::types::{ChatCompletionToolChoiceOption, ResponseFormat};
+use async_openai::types::chat::{ChatCompletionToolChoiceOption, ResponseFormat};
 use async_openai::{
     error::OpenAIError,
-    types::{
-        ChatChoiceStream, ChatCompletionMessageToolCall, ChatCompletionRequestAssistantMessageArgs,
-        ChatCompletionRequestMessage, ChatCompletionRequestMessageContentPartImageArgs,
-        ChatCompletionRequestSystemMessageArgs, ChatCompletionRequestToolMessageArgs,
-        ChatCompletionRequestUserMessageArgs, ChatCompletionRequestUserMessageContent,
-        ChatCompletionRequestUserMessageContentPart, ChatCompletionStreamOptions,
-        CreateChatCompletionRequest, CreateChatCompletionRequestArgs,
+    types::chat::{
+        ChatChoiceStream, ChatCompletionMessageToolCall, ChatCompletionMessageToolCalls,
+        ChatCompletionRequestAssistantMessageArgs, ChatCompletionRequestMessage,
+        ChatCompletionRequestMessageContentPartImageArgs, ChatCompletionRequestSystemMessageArgs,
+        ChatCompletionRequestToolMessageArgs, ChatCompletionRequestUserMessageArgs,
+        ChatCompletionRequestUserMessageContent, ChatCompletionRequestUserMessageContentPart,
+        ChatCompletionStreamOptions, CreateChatCompletionRequest, CreateChatCompletionRequestArgs,
     },
     Client,
 };
@@ -93,7 +93,7 @@ impl Default for OpenAI<OpenAIConfig> {
 }
 
 #[async_trait]
-impl<C: Config + Send + Sync + 'static> LLM for OpenAI<C> {
+impl<C: Config + Clone + Send + Sync + 'static> LLM for OpenAI<C> {
     async fn generate(&self, prompt: &[Message]) -> Result<GenerateResult, LLMError> {
         let client = Client::with_config(self.config.clone());
         let request = self.generate_request(prompt, self.options.streaming_func.is_some())?;
@@ -127,7 +127,7 @@ impl<C: Config + Send + Sync + 'static> LLM for OpenAI<C> {
                         }
                             Err(err) => {
                                 log::warn!("Error from streaming response");
-                                return Err(LLMError::ApiError(err.to_string()));
+                                return Err(LLMError::from(err));
                             }
                     }
                 }
@@ -224,8 +224,12 @@ impl<C: Config> OpenAI<C> {
                     Some(value) => {
                         let function: Vec<ChatCompletionMessageToolCall> =
                             serde_json::from_value(value.clone())?;
+                        let tool_calls: Vec<ChatCompletionMessageToolCalls> = function
+                            .into_iter()
+                            .map(ChatCompletionMessageToolCalls::Function)
+                            .collect();
                         ChatCompletionRequestAssistantMessageArgs::default()
-                            .tool_calls(function)
+                            .tool_calls(tool_calls)
                             .content(m.content.clone())
                             .build()?
                             .into()
@@ -298,7 +302,7 @@ impl<C: Config> OpenAI<C> {
         }
         if stream {
             if let Some(include_usage) = self.options.stream_usage {
-                request_builder.stream_options(ChatCompletionStreamOptions { include_usage });
+                request_builder.stream_options(ChatCompletionStreamOptions { include_usage: Some(include_usage), include_obfuscation: None });
             }
         }
         request_builder.model(self.model.to_string());
@@ -339,8 +343,6 @@ mod tests {
     use serde_json::json;
     use std::sync::Arc;
     use tokio::sync::Mutex;
-    use tokio::test;
-
     /// Integration test requiring OpenAI API key
     ///
     /// Run with: OPENAI_API_KEY=your_key cargo test --features openai test_invoke -- --ignored

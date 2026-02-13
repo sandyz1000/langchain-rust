@@ -12,18 +12,18 @@ pub enum ResponseFormat {
     },
 }
 
-impl OpenAIFromLangchain<ResponseFormat> for async_openai::types::ResponseFormat {
+impl OpenAIFromLangchain<ResponseFormat> for async_openai::types::chat::ResponseFormat {
     fn from_langchain(langchain: ResponseFormat) -> Self {
         match langchain {
-            ResponseFormat::Text => async_openai::types::ResponseFormat::Text,
-            ResponseFormat::JsonObject => async_openai::types::ResponseFormat::JsonObject,
+            ResponseFormat::Text => async_openai::types::chat::ResponseFormat::Text,
+            ResponseFormat::JsonObject => async_openai::types::chat::ResponseFormat::JsonObject,
             ResponseFormat::JsonSchema {
                 name,
                 description,
                 schema,
                 strict,
-            } => async_openai::types::ResponseFormat::JsonSchema {
-                json_schema: async_openai::types::ResponseFormatJsonSchema {
+            } => async_openai::types::chat::ResponseFormat::JsonSchema {
+                json_schema: async_openai::types::chat::ResponseFormatJsonSchema {
                     name,
                     description,
                     schema,

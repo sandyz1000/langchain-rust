@@ -1,8 +1,8 @@
 use crate::schemas::convert::{OpenAIFromLangchain, TryOpenAiFromLangchain};
 use crate::tools::Tool;
-use async_openai::types::{
-    ChatCompletionNamedToolChoice, ChatCompletionTool, ChatCompletionToolArgs,
-    ChatCompletionToolChoiceOption, ChatCompletionToolType, FunctionName, FunctionObjectArgs,
+use async_openai::types::chat::{
+    ChatCompletionNamedToolChoice, ChatCompletionTool, ChatCompletionToolChoiceOption,
+    ChatCompletionTools, FunctionName, FunctionObjectArgs, ToolChoiceOptions,
 };
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
@@ -18,11 +18,14 @@ pub enum FunctionCallBehavior {
 impl OpenAIFromLangchain<FunctionCallBehavior> for ChatCompletionToolChoiceOption {
     fn from_langchain(langchain: FunctionCallBehavior) -> Self {
         match langchain {
-            FunctionCallBehavior::Auto => ChatCompletionToolChoiceOption::Auto,
-            FunctionCallBehavior::None => ChatCompletionToolChoiceOption::None,
+            FunctionCallBehavior::Auto => {
+                ChatCompletionToolChoiceOption::Mode(ToolChoiceOptions::Auto)
+            }
+            FunctionCallBehavior::None => {
+                ChatCompletionToolChoiceOption::Mode(ToolChoiceOptions::None)
+            }
             FunctionCallBehavior::Named(name) => {
-                ChatCompletionToolChoiceOption::Named(ChatCompletionNamedToolChoice {
-                    r#type: ChatCompletionToolType::Function,
+                ChatCompletionToolChoiceOption::Function(ChatCompletionNamedToolChoice {
                     function: FunctionName {
                         name: name.to_owned(),
                     },
@@ -70,10 +73,16 @@ impl TryOpenAiFromLangchain<FunctionDefinition> for ChatCompletionTool {
             .parameters(langchain.parameters)
             .build()?;
 
-        ChatCompletionToolArgs::default()
-            .r#type(ChatCompletionToolType::Function)
-            .function(tool)
-            .build()
+        Ok(ChatCompletionTool { function: tool })
+    }
+}
+
+impl TryOpenAiFromLangchain<FunctionDefinition> for ChatCompletionTools {
+    type Error = async_openai::error::OpenAIError;
+
+    fn try_from_langchain(langchain: FunctionDefinition) -> Result<Self, Self::Error> {
+        let tool = ChatCompletionTool::try_from_langchain(langchain)?;
+        Ok(ChatCompletionTools::Function(tool))
     }
 }
 
