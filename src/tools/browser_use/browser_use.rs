@@ -2,6 +2,16 @@
 //!
 //! Requires the `browser-use` feature and Chrome/Chromium installed (or use
 //! headless_chrome's bundled Chromium where available).
+//!
+//! ## Architecture Note
+//!
+//! This tool uses `headless_chrome` for server-side browser automation, not `gloo`.
+//! - `headless_chrome`: Suitable for native/server environments where code controls an external browser
+//! - `gloo`: Designed for WASM code running *inside* a browser that needs browser APIs
+//!
+//! Since langchain-ai-rust is a server-side LLM framework (not a WASM library), `headless_chrome`
+//! is the appropriate choice for this use case. Using `gloo` would require a complete architectural
+//! redesign to target WASM and would be incompatible with the library's server-side design.
 
 use async_trait::async_trait;
 use serde::Deserialize;
